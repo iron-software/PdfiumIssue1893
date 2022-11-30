@@ -106,10 +106,6 @@ int main()
     char buff[FILENAME_MAX]; //create string buffer to hold path
     _getcwd(buff, FILENAME_MAX);
     std::string dir = std::string(buff);
-    // can select
-    // - empty.pdf
-    // - elvis.pdf
-    // - Faktura_nr_134450_300622.pdf
     std::string path = dir + "\\elvis.pdf";
     // open document
     FPDF_DOCUMENT handle = FPDF_LoadDocument(path.c_str(), "");
@@ -120,24 +116,13 @@ int main()
     FPDF_PAGE page = FPDF_LoadPage(handle, 1);
     if (page == nullptr)
         throw std::exception("failed to load page");
-    // count chars
     FPDF_TEXTPAGE text_page = FPDFText_LoadPage(page);
-    int count = FPDFText_CountChars(text_page);
-    cout << count << " chars\n";
+    if (text_page == nullptr)
+        throw std::exception("failed to load text page");
     // get object (text that says "Presley")
     FPDF_PAGEOBJECT object = FPDFPage_GetObject(page, 107);
     if (object == nullptr)
         throw std::exception("failed to retrieve object");
-    // get object text
-    unsigned short* buffer = nullptr;
-    int obj_text_len = FPDFTextObj_GetText(object, text_page, buffer, 0);
-    buffer = new unsigned short[obj_text_len];
-    obj_text_len = FPDFTextObj_GetText(object, text_page, buffer, obj_text_len);
-    wchar_t* chars = new wchar_t[obj_text_len+1];
-    for (unsigned long i = 0; i < obj_text_len + 1; i++)
-        chars[i] = buffer[i];
-    chars[obj_text_len] = L'\0';
-    wstring obj_text = std::wstring(chars);
     // remove object
     FPDF_BOOL result = FPDFPage_RemoveObject(page, object);
     if (!result)
@@ -147,9 +132,6 @@ int main()
     result = FPDFPage_GenerateContent(page);
     if (!result)
         throw std::exception("error while re-generating content");
-    // count chars
-    int new_count = FPDFText_CountChars(text_page);
-    cout << new_count << " chars\n";
     // close page
     FPDFText_ClosePage(text_page);
     FPDF_ClosePage(page);
