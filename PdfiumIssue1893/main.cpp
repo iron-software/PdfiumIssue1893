@@ -93,8 +93,37 @@ public:
     }
 };
 
+FPDF_PAGE workaround(FPDF_DOCUMENT doc, int page_index)
+{
+    FPDF_PAGE page_in = FPDF_LoadPage(doc, page_index);
+    float width = FPDF_GetPageWidthF(page_in);
+    float height = FPDF_GetPageHeightF(page_in);
+    FS_MATRIX m;
+    m.a = 1;
+    m.b = 0;
+    m.c = 0;
+    m.d = 1;
+    m.e = 0;
+    m.f = 0;
+    FS_RECTF rectf;
+    rectf.bottom = 0;
+    rectf.left = 0;
+    rectf.right = width;
+    rectf.top = height;
+    FPDFPage_TransFormWithClip(page_in, &m, &rectf);
+    FPDFPage_SetMediaBox(page_in, 0, 0, width, height);
+    //
+    FPDFPage_GenerateContent(page_in);
+    FPDF_ClosePage(page_in);
+    FPDF_PAGE page_out = FPDF_LoadPage(doc, page_index);
+    return page_out;
+}
 int main()
 {
+    // params
+    bool use_fix = false; // set to true to demonstrate the fix!
+    int page_index = 1;
+    int object_index = 107;
     // init library
     FPDF_LIBRARY_CONFIG config;
     config.version = 2;
@@ -112,15 +141,25 @@ int main()
     if (handle == nullptr)
         throw std::exception("failed to load document");
     // load page (2nd page)
-    int page_count = FPDF_GetPageCount(handle);
-    FPDF_PAGE page = FPDF_LoadPage(handle, 1);
+    FPDF_PAGE page = nullptr;
+    if(use_fix)
+    {
+        // load page w/ workaround
+        page = workaround(handle, page_index);
+    }
+    else
+    {
+        // load page
+        page = FPDF_LoadPage(handle, page_index);
+    }
     if (page == nullptr)
         throw std::exception("failed to load page");
+    // load text page
     FPDF_TEXTPAGE text_page = FPDFText_LoadPage(page);
     if (text_page == nullptr)
         throw std::exception("failed to load text page");
     // get object (text that says "Presley")
-    FPDF_PAGEOBJECT object = FPDFPage_GetObject(page, 107);
+    FPDF_PAGEOBJECT object = FPDFPage_GetObject(page, object_index);
     if (object == nullptr)
         throw std::exception("failed to retrieve object");
     // remove object
