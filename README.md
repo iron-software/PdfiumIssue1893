@@ -21,3 +21,6 @@ Output: result.pdf
 
 ## Which Object is Being Removed?
 ![screenshot of removed object](https://github.com/iron-software/PdfiumIssue1893/blob/main/Which%20Object%20is%20Removed.png?raw=true)
+
+## Workaround
+Invoke FPDFPage_TransFormWithClip() and FPDFPage_SetMediaBox() upon opening a document (without actually changing its size) in order to "reset" or re-calculate the apperance streams.
