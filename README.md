@@ -24,3 +24,5 @@ Output: result.pdf
 
 ## Workaround
 Invoke FPDFPage_TransFormWithClip() and FPDFPage_SetMediaBox() upon opening a document (without actually changing its size) in order to "reset" or re-calculate the apperance streams.
+
+Set use_fix=true to demonstrate the workaround.
